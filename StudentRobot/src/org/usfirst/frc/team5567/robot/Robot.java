@@ -31,13 +31,13 @@ public class Robot extends IterativeRobot {
 	SpeedController FRController = new Victor(FrontRight);
 	SpeedController RLController = new Talon(RearLeft);
 	SpeedController RRController = new Talon(RearRight);
+	Winch robotWinch = new Winch(4);
+	Shooter robotShoooter = new Shooter(5,6);
 	RobotDrive Team = new RobotDrive(FLController,FRController,RLController,RRController);
 	Timer Alpha = new Timer();
 	XboxController CBeta = new XboxController(0);
 	XboxController CBravo = new XboxController(1);
 	double Delta = 0.1;
-	Winch robotWinch = new Winch(4);
-	Shooter robotShoooter = new Shooter(5);
 	
 	
 	
@@ -118,8 +118,16 @@ public class Robot extends IterativeRobot {
 		}
 		Team.mecanumDrive_Cartesian(XLIn, YLIn, RtIn-LtIn, 0);
 		double BLtIn = this.CBravo.getTriggerAxis(Hand.kLeft);
-		double BRtIn = this.CBravo.getTriggerAxis(Hand.kRight);
+//		double BRtIn = this.CBravo.getTriggerAxis(Hand.kRight);
+		boolean BRbIn = this.CBravo.getBumper(Hand.kRight);
 		this.robotWinch.setWinchSpeed(BLtIn);
+		this.robotShoooter.turnShooterOn(BRbIn);
+//		if(BRbIn == true){
+//			this.robotShoooter.setShooterSpeed(1.00);
+//		}
+//		else{
+//			this.robotShoooter.setShooterSpeed(0.00);
+//		}
 	}
 
 	/**
