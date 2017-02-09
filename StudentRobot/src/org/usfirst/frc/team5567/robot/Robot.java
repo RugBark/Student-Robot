@@ -110,13 +110,27 @@ public class Robot extends IterativeRobot {
 		double YLIn = this.CBeta.getY(Hand.kLeft);
 		double LtIn = this.CBeta.getTriggerAxis(Hand.kLeft);
 		double RtIn = this.CBeta.getTriggerAxis(Hand.kRight);
+		double XLIn2 = this.CBeta.getX(Hand.kRight);
+		double TrigDiff = (RtIn-LtIn);
+		double Rotation = 0.00;
 		if (XLIn < Delta && XLIn > -Delta){
 			XLIn = 0;
 		}
 		if (YLIn < Delta && YLIn > -Delta){
 			YLIn = 0;
 		}
-		Team.mecanumDrive_Cartesian(XLIn, YLIn, RtIn-LtIn, 0);
+		if (XLIn2 < Delta && XLIn2 > -Delta){
+			XLIn2 = 0;
+		}
+// TODO: Rotation selection--Port options to dashboard?
+// **Could use button to change rotation input		
+		if (Math.abs(XLIn2) > Math.abs(TrigDiff)){
+			Rotation = XLIn2;
+		}
+		else {
+			Rotation = TrigDiff;
+		}
+		Team.mecanumDrive_Cartesian(XLIn, YLIn, Rotation, 0);
 		double BLtIn = this.CBravo.getTriggerAxis(Hand.kLeft);
 //		double BRtIn = this.CBravo.getTriggerAxis(Hand.kRight);
 		boolean BRbIn = this.CBravo.getBumper(Hand.kRight);
