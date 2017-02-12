@@ -6,13 +6,16 @@ import edu.wpi.first.wpilibj.Victor;
 
 
 public class Winch {
-	SpeedController WinchController;
+	SpeedController winchController;
 	public Winch(int channel) {
 		// TODO Auto-generated constructor stub
-		WinchController = new Talon(channel);
+		winchController = new Talon(channel);
 	}
+	/**
+	 * @param winchSpeed
+	 */
 	public void setWinchSpeed(double winchSpeed){
-		this.WinchController.set(winchSpeed);
+		this.winchController.set(winchSpeed);
 		
 	}
 }

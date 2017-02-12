@@ -23,21 +23,58 @@ public class Robot extends IterativeRobot {
 	final String customAuto = "My Auto";
 	String autoSelected;
 	SendableChooser<String> chooser = new SendableChooser<>();
+	
+	//Driver options chooser
+	//TODO: Verify driver order
+	final String defaultDriver = "Parker";
+	final String driverTwo = "Taylor";
+	final String driverThree = "Michael";
+	String driverSelected;
+	SendableChooser<String> driverSelect = new SendableChooser<>();
+	
+	//Setting drivetrain motor controllers to PWM Ports 
 	int FrontLeft=0;
 	int FrontRight=1;
 	int RearLeft=2;
 	int RearRight=3;
+	
+	//Setting the winch motor controller to a PWM port
+	int winchController = 4;
+	
+	//Setting the shooter motor controller and the ball release motor controller to a PWM port
+	int shooterController = 5;
+	int ballReleaseController = 6;
+	
+	//Setting Xbox controllers to USB ports
+	int pilotUSBPort = 0;
+	int copilotUSBPort = 1;
+	
+	//Creating speed controllers for the drivetrain & assigning new instance of the corresponding motor controllers 
+	//initializing with which PWM channel to use
 	SpeedController FLController = new Talon(FrontLeft);
 	SpeedController FRController = new Victor(FrontRight);
 	SpeedController RLController = new Talon(RearLeft);
 	SpeedController RRController = new Talon(RearRight);
-	Winch robotWinch = new Winch(4);
-	Shooter robotShoooter = new Shooter(5,6);
-	RobotDrive Team = new RobotDrive(FLController,FRController,RLController,RRController);
-	Timer Alpha = new Timer();
-	XboxController CBeta = new XboxController(0);
-	XboxController CBravo = new XboxController(1);
-	double Delta = 0.1;
+	
+	//Creating a winch & initializing with the PWM port set by winchController
+	Winch robotWinch = new Winch(winchController);
+	
+	//Creating a shooter & initializing with the PWM ports set by shooterController & ballReleaseController
+	Shooter robotShoooter = new Shooter(shooterController,ballReleaseController);
+	
+	//Creating a new RobotDrive & initializing with the speed controllers
+	RobotDrive myRobotDrive = new RobotDrive(FLController,FRController,RLController,RRController);
+	
+	//Creating a timer for elapsed time
+	Timer myTimer = new Timer();
+	
+	//Initializing controllers to the correct USB ports
+	XboxController pilotController = new XboxController(pilotUSBPort);
+	XboxController copilotController = new XboxController(copilotUSBPort);
+	
+	//Deadzone threshold for controller
+	//Prevents unintentional drifting 
+	double threshold = 0.1;
 	
 	
 	
@@ -51,8 +88,16 @@ public class Robot extends IterativeRobot {
 		chooser.addDefault("Default Auto", defaultAuto);
 		chooser.addObject("My Auto", customAuto);
 		SmartDashboard.putData("Auto choices", chooser);
-		Team.setInvertedMotor(MotorType.kFrontLeft,true);
-		Team.setInvertedMotor(MotorType.kRearLeft,true);
+		
+		//Creates driver selection on dashboard
+		driverSelect.addDefault("Parker", defaultDriver);
+		driverSelect.addObject("Taylor", driverTwo);
+		driverSelect.addObject("Michael", driverThree);
+		SmartDashboard.putData("Driver Selection", driverSelect);
+		
+		
+		myRobotDrive.setInvertedMotor(MotorType.kFrontLeft,true);
+		myRobotDrive.setInvertedMotor(MotorType.kRearLeft,true);
 		
 	}
 
@@ -73,8 +118,8 @@ public class Robot extends IterativeRobot {
 		// autoSelected = SmartDashboard.getString("Auto Selector",
 		// defaultAuto);
 		System.out.println("Auto selected: " + autoSelected);
-		this.Alpha.reset();
-		this.Alpha.start();
+		this.myTimer.reset();
+		this.myTimer.start();
 	}
 
 	/**
@@ -89,37 +134,46 @@ public class Robot extends IterativeRobot {
 		case defaultAuto:
 		default:
 			// Put default auto code here
-			this.Alpha.get();
-			if (Alpha.get() <= 5.00){
-				Team.mecanumDrive_Cartesian(0, 0.5, 0, 0);
+			this.myTimer.get();
+			if (myTimer.get() <= 5.00){
+				myRobotDrive.mecanumDrive_Cartesian(0, 0.5, 0, 0);
 			}
 			else {
-				Team.mecanumDrive_Cartesian(0, 0, 0, 0);
+				myRobotDrive.mecanumDrive_Cartesian(0, 0, 0, 0);
 			}
 				
 			break;
 		}
 	}
 
+	
+	@Override
+	public void teleopInit(){
+		driverSelected = driverSelect.getSelected();
+		System.out.println("Driver selected: " + driverSelected);
+	}
+	
+	
+	
 	/**
 	 * This function is called periodically during operator control
 	 */
 	@Override
 	public void teleopPeriodic() {
-		double XLIn = this.CBeta.getX(Hand.kLeft);
-		double YLIn = this.CBeta.getY(Hand.kLeft);
-		double LtIn = this.CBeta.getTriggerAxis(Hand.kLeft);
-		double RtIn = this.CBeta.getTriggerAxis(Hand.kRight);
-		double XLIn2 = this.CBeta.getX(Hand.kRight);
+		double XLIn = this.pilotController.getX(Hand.kLeft);
+		double YLIn = this.pilotController.getY(Hand.kLeft);
+		double LtIn = this.pilotController.getTriggerAxis(Hand.kLeft);
+		double RtIn = this.pilotController.getTriggerAxis(Hand.kRight);
+		double XLIn2 = this.pilotController.getX(Hand.kRight);
 		double TrigDiff = (RtIn-LtIn);
 		double Rotation = 0.00;
-		if (XLIn < Delta && XLIn > -Delta){
+		if (XLIn < threshold && XLIn > -threshold){
 			XLIn = 0;
 		}
-		if (YLIn < Delta && YLIn > -Delta){
+		if (YLIn < threshold && YLIn > -threshold){
 			YLIn = 0;
 		}
-		if (XLIn2 < Delta && XLIn2 > -Delta){
+		if (XLIn2 < threshold && XLIn2 > -threshold){
 			XLIn2 = 0;
 		}
 // TODO: Rotation selection--Port options to dashboard?
@@ -130,18 +184,12 @@ public class Robot extends IterativeRobot {
 		else {
 			Rotation = TrigDiff;
 		}
-		Team.mecanumDrive_Cartesian(XLIn, YLIn, Rotation, 0);
-		double BLtIn = this.CBravo.getTriggerAxis(Hand.kLeft);
-//		double BRtIn = this.CBravo.getTriggerAxis(Hand.kRight);
-		boolean BRbIn = this.CBravo.getBumper(Hand.kRight);
+		myRobotDrive.mecanumDrive_Cartesian(XLIn, YLIn, Rotation, 0);
+		double BLtIn = this.copilotController.getTriggerAxis(Hand.kLeft);
+//		double BRtIn = this.copilotController.getTriggerAxis(Hand.kRight);
+		boolean BRbIn = this.copilotController.getBumper(Hand.kRight);
 		this.robotWinch.setWinchSpeed(BLtIn);
 		this.robotShoooter.turnShooterOn(BRbIn);
-//		if(BRbIn == true){
-//			this.robotShoooter.setShooterSpeed(1.00);
-//		}
-//		else{
-//			this.robotShoooter.setShooterSpeed(0.00);
-//		}
 	}
 
 	/**
