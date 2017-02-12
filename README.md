@@ -1,4 +1,3 @@
 # Student-Robot
 Note for collaberators:
-Main java code was moved to the front of the repository, everything else unneeded was deleted.
-Figured it would be easier than searching through all the folders trying to find the main code.
+Moved main code to front, started to delete rest of folders, but is putting back to make sure we don't need the folders first.
